@@ -1,0 +1,351 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diffraction Grating Lab (3D)</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f9;--fg:#122033;--card:#fff;--line:#d3dae6;--mut:#566780;--ac:#1a5fd0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b111b;--fg:#e4ebf5;--card:#131c2a;--line:#25324a;--mut:#93a4bb;--ac:#6aaaff}}
+:root[data-theme="dark"]{--bg:#0b111b;--fg:#e4ebf5;--card:#131c2a;--line:#25324a;--mut:#93a4bb;--ac:#6aaaff}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 Manrope,system-ui,sans-serif}
+*{box-sizing:border-box}
+header{padding:18px 20px 6px}h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}header p{margin:2px 0 0;color:var(--mut)}
+nav{display:flex;gap:6px;padding:10px 20px;overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+button,select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+nav button{white-space:nowrap}nav button.on,button[aria-pressed=true]{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{padding:6px 20px 40px;max-width:1280px;margin:auto}.pane{display:none}.pane.on{display:block}
+#exp.on{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:16px}
+@media(max-width:900px){#exp.on{grid-template-columns:1fr}}
+.stage{position:relative;background:#070b12;border-radius:12px;overflow:hidden;min-height:420px;height:min(68vh,640px)}
+#gl{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#eye{position:absolute;right:10px;bottom:10px;width:210px;height:210px;border:3px solid #34465f;border-radius:50%;background:#000;cursor:ew-resize;touch-action:none;box-shadow:0 0 0 5px #1b2535}
+#eye.big{width:min(440px,calc(100% - 24px),calc(100% * 1.4));max-width:92%;height:auto;aspect-ratio:1;right:50%;bottom:50%;transform:translate(50%,50%);z-index:3}
+.tele{display:flex;gap:6px;margin:0 0 6px}.tele button{flex:1;padding:9px 6px;font-size:15px;touch-action:none;user-select:none}.ctl small{display:block;color:var(--mut);margin:0 0 10px;font-size:12px}
+#hint{position:absolute;left:12px;bottom:10px;color:#9fb2cc;font-size:12px}
+.vw{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap}.vw button{padding:4px 9px;font-size:12px;background:#121c2c;color:#dbe6f5;border-color:#2b3b55}
+.ctl,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.ctl label{display:block;margin:0 0 10px;color:var(--mut);font-size:13px}.ctl b{color:var(--fg)}
+.ctl input[type=range]{width:100%}.ctl select{width:100%;margin-top:3px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.row button{padding:5px 9px;font-size:13px}
+#read{background:var(--bg);border-radius:8px;padding:9px 11px;margin:0 0 10px;min-height:56px;font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left}th{color:var(--mut);font-weight:600}
+.sc{overflow-x:auto}
+.f{background:var(--bg);border-left:4px solid var(--ac);border-radius:0 8px 8px 0;padding:9px 14px;margin:10px 0;font-size:17px}
+.f small{display:block;color:var(--mut);font-size:13px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+canvas.gr{width:100%;height:300px;display:block}
+h2{margin:6px 0 8px;font-size:21px}h3{margin:18px 0 6px;font-size:16px}p,li{max-width:80ch}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;margin:7px 0}summary{cursor:pointer;font-weight:600}details p{margin:8px 0 2px;color:var(--mut)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-size:12px}
+</style></head><body>
+<header><h1>Diffraction grating lab</h1><p>Spectrometer with a plane transmission grating at normal incidence. Orbit the bench, switch the lights, find the orders.</p></header>
+<nav id="tabs"><button class="on" data-t="exp">Experiment</button><button data-t="th">Theory and orders</button><button data-t="man">Lab manual</button><button data-t="gr">Graphs</button><button data-t="vv">Viva questions</button></nav>
+<main>
+<section id="exp" class="pane on">
+ <div class="stage"><canvas id="gl"></canvas>
+  <div class="vw"><button data-v="p">Perspective</button><button data-v="t">Top</button><button data-v="f">Front</button><button id="spin" aria-pressed="false">360° spin</button><button id="lbl" aria-pressed="true">Labels</button><button id="look" aria-pressed="false">Look through telescope</button></div>
+  <canvas id="eye" width="400" height="400" aria-label="Telescope eyepiece view" title="Drag left or right to move the telescope"></canvas><div id="hint">Drag to orbit, scroll to zoom. Drag inside the eyepiece (or press ← →) to swing the telescope.</div></div>
+ <aside class="ctl">
+  <label>Light source<select id="src"><option value="na">Sodium lamp (589.0 and 589.6 nm)</option><option value="hg" selected>Mercury lamp</option><option value="la">Red laser (650 nm)</option><option value="wh">White light</option><option value="cu">Custom wavelength</option></select></label>
+  <label>Custom wavelength <b id="lv">550</b> nm<input type="range" id="lam" min="400" max="700" value="550"></label>
+  <label>Grating <b id="nv">600</b> lines/mm (<span id="lpi"></span> lines per inch)<input type="range" id="N" min="100" max="1200" step="10" value="600"></label>
+  <div class="row"><button id="lamp" aria-pressed="true">Lamp on</button><button id="room" aria-pressed="true">Room lights on</button></div>
+  <label>Telescope angle <b id="pv">0.0</b>°<input type="range" id="phi" min="-90" max="90" step="0.01" value="0"></label>
+  <div class="tele"><button id="tl" aria-label="Move telescope left">◀ Left</button><button id="t0">Centre</button><button id="tr" aria-label="Move telescope right">Right ▶</button></div>
+  <small>Hold a button, use ← → keys (Shift = fine), or drag inside the eyepiece. Colours appear in the eyepiece as the telescope passes each line.</small>
+  <label>Line to find<select id="ln"></select></label>
+  <div class="row" id="snap"></div>
+  <div id="read"></div>
+  <div class="row"><button id="rec">Record reading</button><button id="clr">Clear table</button></div>
+  <div class="sc" id="obs"></div>
+ </aside>
+</section>
+
+<section id="th" class="pane">
+ <div class="g2"><div class="card">
+ <h2>Principle</h2>
+ <p>A grating is a large number of equally spaced parallel slits. Light from every slit interferes. Bright principal maxima appear only where light from neighbouring slits differs in path by a whole number of wavelengths.</p>
+ <div class="f">d sin θₙ = n λ<small>n = 0, ±1, ±2 … is the order. d = grating element (slit width a plus opaque width b).</small></div>
+ <div class="f">d = 1/N = 10⁶/N nm<small>N in lines/mm. Lines per inch ÷ 25.4 gives lines/mm.</small></div>
+ <div class="f">λ = sin θ / (n N)    and    N = sin θ / (n λ)<small>Use these to find an unknown wavelength, or the lines/mm of an unknown grating.</small></div>
+ <div class="f">θ = ½ (θ_left − θ_right)<small>The mean angle of the same line on both sides cancels zero error and centring error.</small></div>
+ <div class="f">n_max = ⌊ d / λ ⌋<small>sin θ cannot exceed 1, so only finitely many orders exist.</small></div>
+ <div class="f">Dθ = dθ/dλ = n / (d cos θ) = nN / cos θ<small>Angular dispersion. Larger for higher order and for more lines per mm.</small></div>
+ <div class="f">R = λ/Δλ = n N_total<small>Resolving power. N_total is the number of lines lit by the beam. Sodium doublet (0.6 nm) needs R ≥ 982.</small></div>
+ <div class="f">I(θ) = I₀ (sin α / α)² (sin Nβ / sin β)²<small>α = π a sin θ / λ (single-slit envelope), β = π d sin θ / λ. If d/a is a ratio of integers, some orders go missing (d = 2a removes every even order).</small></div>
+ <div class="f">d (sin i + sin θ) = n λ<small>Oblique incidence at angle i. This lab keeps i = 0.</small></div>
+ <h3>Overlap of orders</h3><p>Order n of λ₁ coincides with order n+1 of λ₂ when nλ₁ = (n+1)λ₂. In white light, red at 700 nm in 2nd order (1400 nm) lands where violet at 467 nm falls in 3rd order, so the 2nd and 3rd spectra overlap while the 1st is clean.</p>
+ </div><div class="card">
+ <h2>First order versus second order</h2>
+ <div class="sc"><table><tr><th></th><th>1st order (n = 1)</th><th>2nd order (n = 2)</th></tr>
+ <tr><td>Angle</td><td>sin θ₁ = λ/d, the smallest after the central maximum</td><td>sin θ₂ = 2λ/d, roughly twice the sine</td></tr>
+ <tr><td>Spectrum width</td><td>Narrow</td><td>Wider, about double</td></tr>
+ <tr><td>Dispersion</td><td>N / cos θ₁</td><td>2N / cos θ₂, always more than double</td></tr>
+ <tr><td>Brightness</td><td>Brightest of the side orders</td><td>Dimmer (single-slit envelope, here a = 0.4 d)</td></tr>
+ <tr><td>Resolving power</td><td>N_total</td><td>2 N_total</td></tr>
+ <tr><td>Overlap in white light</td><td>None</td><td>Red end meets violet of 3rd order</td></tr>
+ <tr><td>Available</td><td>Almost always</td><td>Only if 2λ &lt; d</td></tr>
+ <tr><td>Use in the experiment</td><td>Main reading, sharp and bright</td><td>Check reading, more accurate angle</td></tr></table></div>
+ <h3>Your current setup</h3><div class="sc" id="live"></div>
+ <p>Rule of thumb: on the same side of the central maximum the colours run violet, blue, green, yellow, red as the angle increases. Higher orders are spread wider than lower ones.</p>
+ </div></div>
+</section>
+
+<section id="man" class="pane"><div class="card">
+ <h2>Lab manual</h2>
+ <h3>Aim</h3><p>To determine the wavelengths of the spectral lines of a source (or the number of lines per mm of a grating) using a plane transmission diffraction grating and a spectrometer, in the 1st and 2nd order.</p>
+ <h3>Apparatus</h3><p>Spectrometer with collimator, telescope, prism table and vernier circle; plane transmission grating; sodium or mercury vapour lamp; spirit level; reading lens.</p>
+ <h3>Formula</h3><p>λ = sin θ / (n N), where θ is the angle of diffraction, n the order and N lines per mm.</p>
+ <h3>Procedure</h3>
+ <ol>
+ <li><b>Level.</b> Level the base and the prism table with the levelling screws and a spirit level.</li>
+ <li><b>Eyepiece.</b> Focus the eyepiece until the cross wires are sharp.</li>
+ <li><b>Telescope.</b> Focus on a distant object so it is set for parallel rays.</li>
+ <li><b>Collimator.</b> Light the slit. Adjust the collimator until the slit image is sharp and vertical on the cross wires. The beam is now parallel.</li>
+ <li><b>Least count.</b> Vernier constant = value of one main scale division ÷ number of vernier divisions (for 0.5° and 30 divisions, 1 arc minute).</li>
+ <li><b>Normal incidence.</b> Read the telescope on the direct image. Turn it 90° and clamp. Rotate the table until the slit image reflected from the grating falls on the cross wires, then turn the table by 45° and clamp. The beam now meets the grating at right angles. In this simulator it is already set.</li>
+ <li><b>Observe.</b> Unclamp the telescope. Bring the cross wire onto each line in the 1st order on the left and note both verniers. Repeat in the 2nd order. Cross to the right side and repeat.</li>
+ <li><b>Simulator.</b> Choose a source and grating, move the telescope slider until the line sits on the cross wire in the eyepiece, then press Record reading.</li>
+ </ol>
+ <h3>Observation table</h3><p>Use the table on the Experiment tab. Columns: line, order n, angle θ, sin θ, calculated λ, error against the accepted value.</p>
+ <h3>Calculation</h3><p>For each reading λ = sin θ / (n N) with N in lines/mm, giving λ in mm; multiply by 10⁶ for nm. Take the mean for each line from the 1st and 2nd order. Then error % = (λ_calc − λ_true) / λ_true × 100.</p>
+ <h3>Result</h3><p>Wavelength of the yellow line = … nm (accepted 589.3 nm). Green line of mercury = … nm (accepted 546.1 nm).</p>
+ <h3>Precautions</h3><ul><li>Level the table and keep the grating plane perpendicular to the collimator axis.</li><li>Use a narrow slit and focus once, then do not disturb the focus.</li><li>Clamp the table before measuring and use the tangent screw for fine setting.</li><li>Read both verniers and avoid parallax. Do not touch the grating surface.</li></ul>
+ <h3>Sources of error</h3><ul><li>Backlash in the tangent screw, so approach each line from the same side.</li><li>Centring (eccentricity) error, removed by using both verniers.</li><li>Grating not exactly at normal incidence.</li><li>Wide slit, which broadens lines and blurs the cross-wire setting.</li></ul>
+</div></section>
+
+<section id="gr" class="pane"><div class="g2">
+ <div class="card"><h3>Intensity pattern (sin θ axis)</h3><canvas class="gr" id="g1"></canvas><p>Stems are the principal maxima for the chosen source and grating. The dashed curve is the single-slit envelope with a = 0.4 d, which makes the 2nd order dimmer than the 1st.</p></div>
+ <div class="card"><h3>sin θ against order n</h3><canvas class="gr" id="g2"></canvas><p>Each line passes through the origin with slope Nλ. Your recorded points appear as white dots. Where a line reaches sin θ = 1, no higher order exists.</p></div>
+ <div class="card"><h3>Angle of diffraction against wavelength</h3><canvas class="gr" id="g3"></canvas><p>Curves for n = 1, 2, 3. The 2nd-order curve is steeper, which is higher dispersion.</p></div>
+</div></section>
+
+<section id="vv" class="pane"><h2>Viva questions</h2><p>Tap a question to see the answer.</p><div id="qa"></div></section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),D2R=Math.PI/180;
+const SRC={na:[589.0,589.6],hg:[404.7,435.8,491.6,546.1,577.0,579.1],la:[650],wh:[420,460,500,540,580,620,660,700],cu:[550]};
+const S={src:"hg",N:600,lam:550,lamp:true,room:true,phi:0,labels:true},OB=[];
+const sinc2=u=>u===0?1:Math.pow(Math.sin(u)/u,2);
+function rgb(l){let r=0,g=0,b=0;
+ if(l<440){r=(440-l)/60;b=1}else if(l<490){g=(l-440)/50;b=1}else if(l<510){g=1;b=(510-l)/20}else if(l<580){r=(l-510)/70;g=1}else if(l<645){r=1;g=(645-l)/65}else r=1;
+ const f=l<420?.3+.7*(l-380)/40:l>700?.3+.7*(780-l)/80:1;
+ return [r,g,b].map(v=>Math.pow(Math.max(v*f,0),.8))}
+const css=c=>"rgb("+c.map(v=>Math.round(v*255)).join(",")+")";
+const W=()=>S.src==="cu"?[S.lam]:SRC[S.src];
+const dnm=()=>1e6/S.N;
+let L=[];
+function lines(){const o=[],d=dnm();let sum=[0,0,0];
+ W().forEach(l=>{const c=rgb(l);sum=sum.map((v,i)=>v+c[i]);
+  for(let n=1;n<=4&&n*l/d<1;n++){const s=n*l/d,t=Math.asin(s)/D2R,I=sinc2(Math.PI*.4*n);
+   [1,-1].forEach(g=>o.push({l,n,g,th:g*t,s,I,c}))}});
+ const m=Math.max(...sum,1e-6);o.push({l:null,n:0,g:1,th:0,s:0,I:1,c:S.src==="wh"?[1,1,1]:S.src==="hg"?sum.map(v=>v/m*.2+.8):sum.map(v=>v/m)});return o}
+
+/* ---------- 3D scene: modelled on the real spectrometer bench ---------- */
+const cv=$("#gl"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+const SC=new THREE.Scene();SC.background=new THREE.Color(0xcfc3a8);SC.fog=new THREE.Fog(0xcfc3a8,100,220);
+const cam=new THREE.PerspectiveCamera(45,1,.1,400);
+const hemi=new THREE.HemisphereLight(0xffffff,0x7a7468,.95),dir=new THREE.DirectionalLight(0xffffff,.7);dir.position.set(8,30,16);
+const lampL=new THREE.PointLight(0xffffff,2.4,70);lampL.position.set(-19,8.5,0);SC.add(hemi,dir,lampL);
+const M=(c,r=.6,m=.2)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const mesh=(g,m,x,y,z)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);return o};
+const BK=0x15181d,SV=0xc3c8d0,OL=0x8d9684;
+const cyl=(r1,r2,h,m,x,y,z)=>mesh(new THREE.CylinderGeometry(r1,r2,h,32),m,x,y,z);
+/* room: beige wall with brown band, pale blue door wall, grey bench */
+const wallTex=(()=>{const c=document.createElement("canvas");c.width=8;c.height=256;const g=c.getContext("2d");g.fillStyle="#e3d6b4";g.fillRect(0,0,8,256);g.fillStyle="#8a6a4a";g.fillRect(0,142,8,40);g.fillStyle="#cdbf9c";g.fillRect(0,182,8,74);return new THREE.CanvasTexture(c)})();
+const wm=new THREE.MeshStandardMaterial({map:wallTex,roughness:.95}),dm=M(0xa3b9c4,.9,0);
+function wall(w,x,z,ry,mat){const p=mesh(new THREE.PlaneGeometry(w,45),mat,x,7.5,z);p.rotation.y=ry;SC.add(p)}
+wall(68,0,-24,0,wm);wall(68,0,24,Math.PI,wm);wall(48,-34,0,Math.PI/2,wm);wall(48,34,0,-Math.PI/2,dm);
+const floor=mesh(new THREE.PlaneGeometry(68,48),M(0x6a6560,.95,0),0,-15,0);floor.rotation.x=-Math.PI/2;SC.add(floor);
+SC.add(mesh(new THREE.BoxGeometry(64,1,34),M(0xb9bdc4,.85,0),0,-.5,0));
+[[-30,-15],[30,-15],[-30,15],[30,15]].forEach(p=>SC.add(mesh(new THREE.BoxGeometry(2,14,2),M(0x4a4f58,.7,.3),p[0],-8,p[1])));
+function paper(w,d,x,z,ry,grid){const c=document.createElement("canvas");c.width=320;c.height=240;const g=c.getContext("2d");g.fillStyle="#f4f4ef";g.fillRect(0,0,320,240);g.fillStyle="#4a5568";g.strokeStyle="#6b7686";g.lineWidth=1.2;
+ if(grid){g.font="700 15px sans-serif";g.fillText("Observation Table:",18,26);for(let r=0;r<=7;r++){g.beginPath();g.moveTo(18,44+r*24);g.lineTo(302,44+r*24);g.stroke()}for(let k=0;k<=4;k++){g.beginPath();g.moveTo(18+k*71,44);g.lineTo(18+k*71,212);g.stroke()}}
+ else{g.font="700 14px sans-serif";g.fillText("DIFFRACTION GRATING",70,24);for(let r=0;r<12;r++)g.fillRect(18,44+r*15,r%4==3?150:284,3)}
+ const p=mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(c),roughness:.95}),x,.03,z);p.rotation.x=-Math.PI/2;p.rotation.z=ry;SC.add(p)}
+paper(12,9,-14,10.5,.12,0);paper(12,9,15,11,-.08,1);
+/* spectrometer (after the photo): flange + drum, black graduated disc, tall column, high prism table */
+const H=8;
+const SM=M(SV,.3,.5),BM=M(BK,.5,.3),OM=M(OL,.55,.3);
+SC.add(cyl(9.2,9.6,.5,OM,0,.25,0),cyl(7,7.6,2.8,OM,0,1.9,0),cyl(7.4,7.4,.4,BM,0,3.3,0),cyl(.9,1.2,2.7,OM,0,4.85,0));
+[100,220,340].forEach(a=>SC.add(cyl(.5,.5,.9,SM,8.9*Math.cos(a*D2R),.95,8.9*Math.sin(a*D2R))));
+(function(){const c=document.createElement("canvas");c.width=c.height=1024;const g=c.getContext("2d");
+ g.fillStyle="#c9ced6";g.beginPath();g.arc(512,512,512,0,7);g.fill();g.fillStyle="#0f1218";g.beginPath();g.arc(512,512,498,0,7);g.fill();
+ g.strokeStyle="#cfd8e6";g.fillStyle="#cfd8e6";g.font="600 22px sans-serif";g.textAlign="center";g.textBaseline="middle";
+ for(let a=-180;a<180;a++){const r=a*D2R,len=a%10==0?46:a%5==0?34:20;g.lineWidth=a%10==0?3:1.2;
+  g.beginPath();g.moveTo(512+Math.cos(r)*(498-len),512+Math.sin(r)*(498-len));g.lineTo(512+Math.cos(r)*498,512+Math.sin(r)*498);g.stroke();
+  if(a%10==0&&Math.abs(a)<=90)g.fillText(a,512+Math.cos(r)*420,512+Math.sin(r)*420)}
+ const p=mesh(new THREE.CircleGeometry(7.4,96),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}),0,3.52,0);p.rotation.x=-Math.PI/2;SC.add(p)})();
+SC.add(cyl(3,3,.3,BM,0,6.35,0),cyl(2.6,2.6,.12,SM,0,6.56,0));
+const gt=(()=>{const c=document.createElement("canvas");c.width=128;c.height=8;const g=c.getContext("2d");g.fillStyle="#9fd0ff";g.fillRect(0,0,128,8);g.fillStyle="#2a5b8c";for(let i=0;i<128;i+=4)g.fillRect(i,0,1,8);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t})();
+SC.add(mesh(new THREE.BoxGeometry(.1,2.8,3),new THREE.MeshStandardMaterial({map:gt,transparent:true,opacity:.55,roughness:.1}),0,H,0),
+ mesh(new THREE.BoxGeometry(.5,.2,3.3),BM,0,6.72,0),mesh(new THREE.BoxGeometry(.2,.12,3.2),BM,0,9.45,0),
+ mesh(new THREE.BoxGeometry(.2,2.9,.1),BM,0,H+.05,1.55),mesh(new THREE.BoxGeometry(.2,2.9,.1),BM,0,H+.05,-1.55),
+ mesh(new THREE.BoxGeometry(4.5,.12,.12),SM,3.2,5.4,-.4),cyl(.4,.4,.5,BM,5.5,5.4,-.4),mesh(new THREE.BoxGeometry(1.8,.4,1.1),BM,0,3.75,6.4));
+/* lamp on dark wooden panel + collimator */
+const tube=(x0,x1,r,c)=>{const o=mesh(new THREE.CylinderGeometry(r,r,x1-x0,32),M(c,.45,.25),(x0+x1)/2,H,0);o.rotation.z=Math.PI/2;return o};
+const hz=(x,y,z,r,l)=>{const o=cyl(r,r,l,SM,x,y,z);o.rotation.x=Math.PI/2;return o};
+const stand=x=>[mesh(new THREE.CylinderGeometry(.55,1,6.8,24),BM,x,3.9,0),mesh(new THREE.BoxGeometry(1.8,1,1.4),BM,x,H-.9,0),hz(x-.5,H-.9,1.2,.2,1),hz(x+.5,H-1.4,.9,.2,.8)];
+/* lamp behind dark panel, glowing right at the collimator slit */
+SC.add(mesh(new THREE.BoxGeometry(.8,16,9),M(0x2b2018,.85,0),-22,8,0));
+const lampBox=cyl(.9,1.2,1.3,M(0x20242b,.5,.3),-19,H-1.9,0),
+ glow=mesh(new THREE.SphereGeometry(1.25,32,24),new THREE.MeshBasicMaterial({color:0xffffff}),-19,H,0),
+ slit=mesh(new THREE.BoxGeometry(.06,.8,.16),new THREE.MeshBasicMaterial({color:0xffffff}),-15.46,H,0);
+const bloomTex=(()=>{const c=document.createElement("canvas");c.width=c.height=128;const g=c.getContext("2d"),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(.25,"rgba(255,255,255,.35)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c)})();
+const bloom=new THREE.Sprite(new THREE.SpriteMaterial({map:bloomTex,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));bloom.scale.set(15,15,1);bloom.position.set(-19,H,0);SC.add(bloom);
+SC.add(lampBox,glow,mesh(new THREE.SphereGeometry(1.6,32,24),new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.14,roughness:.05,metalness:0,depthWrite:false}),-19,H,0),slit,mesh(new THREE.BoxGeometry(2.4,H-2.5,2.4),M(0x20242b,.6,.3),-19,(H-2.5)/2,0),tube(-17.8,-15.6,.7,0x20242b),
+ tube(-14.4,-6,.9,BK),tube(-7,-6,1.1,SV),tube(-15.4,-14.4,1.15,SV),cyl(.45,.45,.8,SM,-12.8,H+1.3,0),...stand(-8.6));
+/* telescope on rotating arm */
+const TG=new THREE.Group();SC.add(TG);
+TG.add(tube(6,13,.9,BK),tube(5.6,6.3,1.1,SV),tube(13,14.4,.5,BK),tube(14,14.5,.65,SV),cyl(.45,.45,.8,SM,7,H+1.3,0),...stand(8.6),
+ mesh(new THREE.BoxGeometry(.3,.15,.9),M(0xff4444),8.6,.58,1.5));
+/* labels */
+const labels=new THREE.Group();SC.add(labels);
+function relabel(s,t){if(s.userData.t===t)return;s.userData.t=t;const c=s.userData.c,g=c.getContext("2d");g.clearRect(0,0,256,64);g.fillStyle="rgba(8,14,24,.82)";g.fillRect(0,0,256,64);g.fillStyle="#e4ebf5";g.font="600 26px sans-serif";g.textAlign="center";g.fillText(t,128,41);s.material.map.needsUpdate=true}
+function lab(t,x,y,z,p){const c=document.createElement("canvas");c.width=256;c.height=64;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.userData.c=c;s.scale.set(6,1.5,1);s.position.set(x,y,z);(p||labels).add(s);relabel(s,t);return s}
+const NAME={hg:"Mercury lamp",na:"Sodium lamp",la:"Red laser",wh:"White light",cu:"Custom source"};
+const lampLab=lab("Mercury lamp",-19,12.4,0);lab("Collimator + slit",-10,11.4,0);lab("Grating on prism table",0,12.8,0);lab("Telescope",10,11.4,0,TG);lab("Graduated circle",-4,4.8,9.4);
+/* rays */
+const rays=new THREE.Group();SC.add(rays);
+function beam(a,b,c,op,w){const v=new THREE.Vector3().subVectors(b,a),l=v.length();if(l<.01)return;
+ const m=new THREE.Mesh(new THREE.CylinderGeometry(w,w,l,8,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color(c[0],c[1],c[2]),transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false}));
+ m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());rays.add(m)}
+function buildRays(){while(rays.children.length){const o=rays.children.pop();o.geometry.dispose();o.material.dispose()}
+ const z=L.find(o=>o.n===0).c,Y=H,V=(x,zz)=>new THREE.Vector3(x,Y,zz);
+ if(!S.lamp)return;
+ for(let i=0;i<28;i++){const y=1-2*(i+.5)/28,r=Math.sqrt(1-y*y),ph=i*2.399963,dv=new THREE.Vector3(Math.cos(ph)*r,y,Math.sin(ph)*r);if(dv.x>.55)continue;const a=V(-19,0).addScaledVector(dv,1.7),len=2.5+(i%4)*1.6;beam(a,a.clone().addScaledVector(dv,len),z,.35,.04);beam(a,a.clone().addScaledVector(dv,len*.6),z,.12,.12)}
+ beam(V(-6,0),V(0,0),z,.55,.05);beam(V(-6,0),V(0,0),z,.12,.16);
+ L.forEach(o=>{const t=o.th*D2R,e=V(6.2*Math.cos(t),6.2*Math.sin(t)),op=.2+.8*Math.sqrt(o.I);
+  beam(V(0,0),e,o.c,op*.7,.045);beam(V(0,0),e,o.c,op*.14,.15)})}
+function lampLook(){const z=L.find(o=>o.n===0).c,col=new THREE.Color(z[0],z[1],z[2]);
+ glow.material.color.copy(S.lamp?col.clone().lerp(new THREE.Color(1,1,1),.5):new THREE.Color(0x2a2f3a));slit.material.color.copy(S.lamp?col:new THREE.Color(0x1a1d22));
+ bloom.visible=S.lamp;bloom.material.color.copy(col);lampL.color.copy(col);lampL.intensity=S.lamp?2.4:0;
+ hemi.intensity=S.room?.95:.04;dir.intensity=S.room?.7:0;labels.visible=S.labels;
+ const bg=S.room?0xcfc3a8:0x04060a;SC.background.setHex(bg);SC.fog.color.setHex(bg);relabel(lampLab,NAME[S.src])}
+/* orbit camera */
+let az=.3,el=.28,dist=38,spin=false;const tg=new THREE.Vector3(-2,5.5,0);
+function camUpd(){cam.position.set(tg.x+dist*Math.cos(el)*Math.sin(az),tg.y+dist*Math.sin(el),tg.z+dist*Math.cos(el)*Math.cos(az));cam.lookAt(tg)}
+let dn=null;cv.addEventListener("pointerdown",e=>{dn=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing"});
+cv.addEventListener("pointermove",e=>{if(!dn)return;az-=(e.clientX-dn[0])*.006;el=Math.max(.04,Math.min(1.55,el+(e.clientY-dn[1])*.006));dn=[e.clientX,e.clientY]});
+cv.addEventListener("pointerup",()=>{dn=null;cv.style.cursor="grab"});
+cv.addEventListener("wheel",e=>{e.preventDefault();dist=Math.max(10,Math.min(80,dist*(1+e.deltaY*.001)))},{passive:false});
+function size(){const s=cv.parentElement,w=s.clientWidth,h=s.clientHeight;if(w&&(cv.width!==w*R.getPixelRatio()|0)){R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}}
+/* eyepiece */
+const EYE=$("#eye"),ex=EYE.getContext("2d"),ES=400,EK=80;
+const rgba=(c,a)=>"rgba("+c.map(v=>Math.round(Math.min(1,v)*255)).join(",")+","+a+")";
+function eye(){const c=ex,m=ES/2,k=EK,items=[];c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,ES,ES);c.save();c.beginPath();c.arc(m,m,m-2,0,7);c.clip();
+ c.fillStyle="#030304";c.fillRect(0,0,ES,ES);
+ if(S.lamp){c.globalCompositeOperation="lighter";
+  const slitImg=(x,col,br,w)=>{const g=c.createLinearGradient(x-w*5,0,x+w*5,0);g.addColorStop(0,rgba(col,0));g.addColorStop(.5,rgba(col,.5*br));g.addColorStop(1,rgba(col,0));c.fillStyle=g;c.fillRect(x-w*5,0,w*10,ES);c.fillStyle=rgba(col,Math.min(1,.45+.55*br));c.fillRect(x-w/2,0,w,ES)};
+  const d=dnm();
+  if(S.src==="wh"){
+   slitImg(m-S.phi*k,[1,1,1],1,7);
+   for(let n=1;n<=3;n++){const I=Math.sqrt(sinc2(Math.PI*.4*n));
+    for(let l=380;l<=720;l+=2){const s=n*l/d;if(s>=1)break;const t=Math.asin(s)/D2R,col=rgb(l),w=(2*n/d/Math.cos(t*D2R))/D2R*k+3;
+     [1,-1].forEach(g=>{const x=m+(g*t-S.phi)*k;if(Math.abs(x-m)>m+10)return;c.globalCompositeOperation="source-over";c.fillStyle=rgba(col.map(v=>v*I),1);c.fillRect(x-w/2,0,w,ES);c.globalCompositeOperation="lighter"})}}}
+  else L.forEach(o=>{const x=m+(o.th-S.phi)*k;if(Math.abs(x-m)>m+40)return;slitImg(x,o.c,.25+.75*Math.sqrt(o.I),o.n?5:7);items.push({x,o})});
+  c.globalCompositeOperation="source-over"}
+ /* graticule scale */
+ c.strokeStyle="rgba(200,215,235,.35)";c.fillStyle="rgba(200,215,235,.6)";c.lineWidth=1;c.font="14px sans-serif";c.textAlign="center";
+ for(let i=Math.ceil((S.phi-m/k)*2);i<=Math.floor((S.phi+m/k)*2);i++){const x=m+(i/2-S.phi)*k,mj=i%2===0;c.beginPath();c.moveTo(x,ES-100);c.lineTo(x,ES-100+(mj?14:7));c.stroke();if(mj)c.fillText(i/2+"°",x,ES-72)}
+ const v=c.createRadialGradient(m,m,m*.62,m,m,m);v.addColorStop(0,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(0,0,0,.7)");c.fillStyle=v;c.fillRect(0,0,ES,ES);
+ c.strokeStyle="rgba(255,255,255,.8)";c.lineWidth=1.2;c.beginPath();c.moveTo(m,0);c.lineTo(m,ES);c.moveTo(0,m);c.lineTo(ES,m);c.stroke();
+ /* labels */
+ items.sort((a,b)=>a.x-b.x);let lx=-999;
+ items.forEach(({x,o})=>{if(x<30||x>ES-30||x-lx<85)return;lx=x;c.fillStyle=o.l?css(o.c):"#fff";c.font="700 17px sans-serif";c.fillText(o.l?o.l+" nm":"central max",x,50);c.fillStyle="#cfd8e6";c.font="15px sans-serif";c.fillText("order "+(o.n?(o.g*o.n>0?"+":"")+o.g*o.n:0),x,70)});
+ c.restore()}
+/* ---------- state updates ---------- */
+function tele(){TG.rotation.y=-S.phi*D2R;$("#pv").textContent=S.phi.toFixed(1);eye();
+ const hit=S.lamp?L.filter(o=>Math.abs(o.th-S.phi)<.3):[],sn=Math.sin(Math.abs(S.phi)*D2R).toFixed(4),wh=S.lamp&&S.src==="wh"?[1,2,3].map(n=>[n,Math.abs(Math.sin(S.phi*D2R))*dnm()/n]).filter(a=>a[1]>=380&&a[1]<=720).map(a=>"colour on the cross wire ≈ <b>"+a[1].toFixed(0)+" nm</b>, order "+a[0]).join("; "):"";
+ $("#read").innerHTML=!S.lamp?"Lamp is off, so nothing reaches the telescope.":"θ = <b>"+S.phi.toFixed(1)+"°</b>, sin θ = "+sn+"<br>"+(hit.length?hit.map(o=>"<b>"+(o.l?o.l+" nm":"central maximum")+"</b>, order "+(o.g*o.n>0?"+":"")+o.g*o.n).join("; "):(wh||"No line on the cross wire. Move the telescope to a bright line."))}
+function live(){const d=dnm();let h="<p>d = "+d.toFixed(1)+" nm ("+S.N+" lines/mm)</p><table><tr><th>λ (nm)</th><th>θ₁</th><th>θ₂</th><th>θ₃</th><th>n max</th><th>D₁, D₂ (°/nm)</th></tr>";
+ W().forEach(l=>{const a=n=>n*l/d<1?(Math.asin(n*l/d)/D2R).toFixed(2)+"°":"none",D=n=>n*l/d<1?(n*S.N/1e6/Math.cos(Math.asin(n*l/d))/D2R*1).toFixed(4):"none";
+ h+="<tr><td>"+l+"</td><td>"+a(1)+"</td><td>"+a(2)+"</td><td>"+a(3)+"</td><td>"+Math.floor(d/l-1e-9)+"</td><td>"+D(1)+", "+D(2)+"</td></tr>"});
+ $("#live").innerHTML=h+"</table>"}
+function ln(){const s=$("#ln"),v=s.value;s.innerHTML=W().map(l=>"<option>"+l+"</option>").join("");if(W().includes(+v))s.value=v}
+function obs(){let h="<table><tr><th>λ true</th><th>n</th><th>θ°</th><th>sin θ</th><th>λ calc</th><th>Error</th></tr>";
+ OB.forEach(r=>h+="<tr><td>"+r.l+"</td><td>"+r.n+"</td><td>"+r.th.toFixed(1)+"</td><td>"+r.s.toFixed(4)+"</td><td>"+r.c.toFixed(1)+"</td><td>"+r.e.toFixed(2)+"%</td></tr>");
+ $("#obs").innerHTML=OB.length?h+"</table>":"<p style=\"color:var(--mut);margin:0\">No readings yet. Put a line on the cross wire and press Record reading.</p>"}
+function upd(){L=lines();$("#nv").textContent=S.N;$("#lpi").textContent=Math.round(S.N*25.4);$("#lv").textContent=S.lam;$("#lam").disabled=S.src!=="cu";
+ ln();buildRays();lampLook();live();tele();if($("#gr").classList.contains("on"))G()}
+/* graphs */
+function plot(id,o){const c=$(id),r=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w)return;c.width=w*r;c.height=h*r;const x=c.getContext("2d");x.scale(r,r);
+ const cs=getComputedStyle(document.documentElement),fg=cs.getPropertyValue("--fg").trim()||"#888",mu=cs.getPropertyValue("--mut").trim()||"#888";
+ const Lm=46,B=38,T=12,Rm=14,X=v=>Lm+(v-o.x0)/(o.x1-o.x0)*(w-Lm-Rm),Y=v=>h-B-(v-o.y0)/(o.y1-o.y0)*(h-B-T);
+ x.font="12px Manrope,system-ui,sans-serif";x.lineWidth=1;x.fillStyle=mu;x.strokeStyle=mu;
+ for(let i=0;i<=o.nx;i++){const v=o.x0+(o.x1-o.x0)*i/o.nx;x.globalAlpha=.25;x.beginPath();x.moveTo(X(v),T);x.lineTo(X(v),h-B);x.stroke();x.globalAlpha=1;x.textAlign="center";x.fillText(+v.toFixed(2),X(v),h-B+15)}
+ for(let i=0;i<=o.ny;i++){const v=o.y0+(o.y1-o.y0)*i/o.ny;x.globalAlpha=.25;x.beginPath();x.moveTo(Lm,Y(v));x.lineTo(w-Rm,Y(v));x.stroke();x.globalAlpha=1;x.textAlign="right";x.fillText(+v.toFixed(2),Lm-6,Y(v)+4)}
+ x.textAlign="center";x.fillStyle=fg;x.fillText(o.xl,(Lm+w-Rm)/2,h-6);x.save();x.translate(12,(T+h-B)/2);x.rotate(-Math.PI/2);x.fillText(o.yl,0,0);x.restore();o.draw(x,X,Y,fg)}
+function G(){const d=dnm(),l0=W()[0];
+ plot("#g1",{x0:-1,x1:1,y0:0,y1:1.05,nx:8,ny:5,xl:"sin θ",yl:"Relative intensity",draw:(x,X,Y,fg)=>{
+  x.setLineDash([5,4]);x.strokeStyle=fg;x.globalAlpha=.6;x.beginPath();for(let i=0;i<=200;i++){const s=-1+i/100,v=sinc2(Math.PI*.4*d*s/l0);i?x.lineTo(X(s),Y(v)):x.moveTo(X(s),Y(v))}x.stroke();x.setLineDash([]);x.globalAlpha=1;
+  L.forEach(o=>{x.strokeStyle=css(o.c);x.lineWidth=3;x.beginPath();x.moveTo(X(o.g*o.s),Y(0));x.lineTo(X(o.g*o.s),Y(o.I));x.stroke();if(o.n&&o.l===l0){x.fillStyle=fg;x.textAlign="center";x.fillText(o.g*o.n>0?"+"+o.n:o.g*o.n,X(o.g*o.s),Y(o.I)-6)}});if(0)0}});
+ plot("#g2",{x0:0,x1:4,y0:0,y1:1.1,nx:4,ny:5,xl:"Order n",yl:"sin θ",draw:(x,X,Y,fg)=>{
+  W().forEach(l=>{x.strokeStyle=css(rgb(l));x.lineWidth=2;x.beginPath();x.moveTo(X(0),Y(0));const nm=Math.min(4,d/l);x.lineTo(X(nm),Y(nm*l/d));x.stroke()});
+  x.setLineDash([5,4]);x.strokeStyle=fg;x.globalAlpha=.6;x.beginPath();x.moveTo(X(0),Y(1));x.lineTo(X(4),Y(1));x.stroke();x.setLineDash([]);x.globalAlpha=1;
+  OB.forEach(r=>{x.fillStyle="#fff";x.strokeStyle="#000";x.beginPath();x.arc(X(r.n),Y(r.s),5,0,7);x.fill();x.stroke()})}});
+ plot("#g3",{x0:400,x1:700,y0:0,y1:90,nx:6,ny:6,xl:"Wavelength λ (nm)",yl:"θ (degrees)",draw:(x,X,Y,fg)=>{
+  [1,2,3].forEach(n=>{x.strokeStyle=["#4aa3ff","#ffb347","#6be08a"][n-1];x.lineWidth=2;x.beginPath();let st=0;for(let l=400;l<=700;l+=4){const s=n*l/d;if(s>=1)break;st?x.lineTo(X(l),Y(Math.asin(s)/D2R)):x.moveTo(X(l),Y(Math.asin(s)/D2R));st=1}x.stroke();x.fillStyle=x.strokeStyle;x.textAlign="left";x.fillText("n = "+n,X(402),Y(Math.asin(Math.min(.999,n*400/d))/D2R)-6)});
+  W().forEach(l=>{x.strokeStyle=css(rgb(l));x.globalAlpha=.7;x.beginPath();x.moveTo(X(l),Y(0));x.lineTo(X(l),Y(90));x.stroke();x.globalAlpha=1})}})}
+/* controls */
+$("#src").onchange=e=>{S.src=e.target.value;upd()};$("#lam").oninput=e=>{S.lam=+e.target.value;upd()};$("#N").oninput=e=>{S.N=+e.target.value;upd()};
+$("#phi").oninput=e=>{S.phi=+e.target.value;tele()};
+function setPhi(v){S.phi=Math.max(-90,Math.min(90,Math.round(v*100)/100));$("#phi").value=S.phi;tele()}
+function holdMove(id,dir){const b=$(id);let t=null,st=0;const stop=()=>{clearInterval(t);t=null};
+ b.addEventListener("pointerdown",e=>{e.preventDefault();stop();st=.1;setPhi(S.phi+dir*st);t=setInterval(()=>{st=Math.min(.8,st+.02);setPhi(S.phi+dir*st)},40)});
+ ["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,stop))}
+holdMove("#tl",-1);holdMove("#tr",1);$("#t0").onclick=()=>setPhi(0);
+addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||!$("#exp").classList.contains("on"))return;
+ if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();setPhi(S.phi+(e.key==="ArrowRight"?1:-1)*(e.shiftKey?.05:.25))}});
+let ed=null;EYE.addEventListener("pointerdown",e=>{ed=e.clientX;EYE.setPointerCapture(e.pointerId)});
+EYE.addEventListener("pointermove",e=>{if(ed===null)return;setPhi(S.phi-(e.clientX-ed)*(ES/EYE.clientWidth)/EK);ed=e.clientX});
+["pointerup","pointercancel"].forEach(ev=>EYE.addEventListener(ev,()=>{ed=null}));
+EYE.addEventListener("wheel",e=>{e.preventDefault();setPhi(S.phi+e.deltaY*.002)},{passive:false});
+$("#look").onclick=e=>{const on=!EYE.classList.contains("big");EYE.classList.toggle("big",on);e.target.setAttribute("aria-pressed",on);e.target.textContent=on?"Back to bench view":"Look through telescope"};
+const tg2=(id,k,on,off)=>$(id).onclick=e=>{S[k]=!S[k];e.target.setAttribute("aria-pressed",S[k]);if(on)e.target.textContent=S[k]?on:off;upd()};
+tg2("#lamp","lamp","Lamp on","Lamp off");tg2("#room","room","Room lights on","Room lights off");tg2("#lbl","labels");
+$("#spin").onclick=e=>{spin=!spin;e.target.setAttribute("aria-pressed",spin)};
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{const v=b.dataset.v;spin=false;$("#spin").setAttribute("aria-pressed",false);if(v=="p"){az=.3;el=.28;dist=38}if(v=="t"){az=0;el=1.55;dist=42}if(v=="f"){az=0;el=.06;dist=34}});
+$("#snap").innerHTML=[-3,-2,-1,0,1,2,3].map(k=>"<button data-k=\""+k+"\">"+(k>0?"+":"")+k+"</button>").join("");
+$("#snap").onclick=e=>{const k=e.target.dataset.k;if(k===undefined)return;const l=+$("#ln").value,s=Math.abs(k)*l/dnm();
+ if(s>=1){$("#read").textContent="Order "+k+" does not exist for "+l+" nm with this grating (sin θ would exceed 1).";return}
+ S.phi=Math.sign(k)*Math.asin(s)/D2R;$("#phi").value=S.phi;tele()};
+$("#rec").onclick=()=>{const o=L.filter(o=>o.n>0&&Math.abs(o.th-S.phi)<.35).sort((a,b)=>Math.abs(a.th-S.phi)-Math.abs(b.th-S.phi))[0];
+ if(!S.lamp||!o){$("#read").innerHTML="Nothing to record. Switch the lamp on and put a spectral line (not the central maximum) on the cross wire.";return}
+ const th=Math.abs(S.phi),s=Math.sin(th*D2R),c=s/(o.n*S.N)*1e6;OB.push({l:o.l,n:o.n,th,s,c,e:(c-o.l)/o.l*100});obs();if($("#gr").classList.contains("on"))G()};
+$("#clr").onclick=()=>{OB.length=0;obs();G()};
+$("#tabs").onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll(".pane,#tabs button").forEach(x=>x.classList.remove("on"));$("#"+t).classList.add("on");e.target.classList.add("on");if(t=="gr")G();if(t=="exp")size()};
+addEventListener("resize",()=>{size();if($("#gr").classList.contains("on"))G()});
+/* viva */
+const QA=[["What is a diffraction grating?","A plate with a very large number of equally spaced parallel slits or ruled lines (hundreds to thousands per mm) that splits light into spectra by diffraction and interference."],
+["State the grating equation.","d sin θ = nλ for normal incidence, where d is the grating element, n the order and λ the wavelength."],
+["What is the grating element?","d = a + b, the slit width plus the opaque width, equal to 1/N for N lines per unit length."],
+["Why is the central maximum white in white light?","At θ = 0 the path difference is zero for every wavelength, so all colours reinforce together."],
+["Why is violet closest to the centre and red farthest?","sin θ is proportional to λ for a fixed order, and violet has the shortest wavelength."],
+["What is the maximum order you can observe?","sin θ must be at most 1, so n ≤ d/λ. With 600 lines/mm and 589 nm, d/λ = 2.83, so orders up to 2."],
+["Why is the 2nd-order spectrum wider than the 1st?","Dispersion dθ/dλ = n/(d cos θ) grows with the order and with cos θ falling at larger angles."],
+["Why is the 2nd order dimmer than the 1st?","The single-slit diffraction envelope falls off with angle, and light is shared among more orders."],
+["Do orders overlap?","Yes. Order n of λ₁ overlaps order n+1 of λ₂ when nλ₁ = (n+1)λ₂. The 2nd and 3rd orders of white light overlap, the 1st does not."],
+["What are missing orders?","Orders where an interference maximum falls on a single-slit minimum. If d = 2a, every even order is absent."],
+["How does a grating spectrum differ from a prism spectrum?","A grating gives several orders, deviates red most, and spreads colours almost linearly with wavelength. A prism gives one spectrum, deviates violet most and is non-linear."],
+["Why must the telescope and collimator be set for parallel light?","Plane waves meet the grating, so every wavelength is diffracted at one definite angle and lines are sharp."],
+["Why use normal incidence?","The equation becomes simple, the spectra on both sides are symmetric and incidence-angle error is removed."],
+["How do you set normal incidence?","Turn the telescope 90° from the collimator, rotate the table until the reflected slit image is on the cross wires, then turn the table 45° and clamp."],
+["Why is θ taken as half the difference of left and right readings?","It removes zero error, centring error and any slight error of normal incidence."],
+["Define angular dispersion.","The change in diffraction angle per unit change in wavelength: dθ/dλ = n/(d cos θ)."],
+["Define resolving power and what it depends on.","R = λ/Δλ = nN_total. It depends on the order and the total number of lines illuminated, not only on lines per mm."],
+["Can the sodium D lines be resolved?","Their separation is about 0.6 nm, so R must be at least 589.3/0.6, about 982. A 600 lines/mm grating lit across 2 cm gives 12 000 lines and easily resolves them in 1st order."],
+["What is the least count of the spectrometer?","One main scale division divided by the number of vernier divisions, typically 0.5°/30 = 1 arc minute."],
+["What happens if the lines per mm are increased?","d decreases, so every angle increases, dispersion increases and fewer orders are available."],
+["Why is the slit kept narrow and parallel to the grating lines?","A narrow slit gives sharp images and good resolution. Parallel alignment keeps the spectral lines vertical and the dispersion horizontal."],
+["Why is a grating better than a prism for resolving?","Its resolving power can be far higher and does not depend on a material that absorbs or has varying refractive index."],
+["How many secondary maxima lie between two principal maxima?","N − 2 very weak secondary maxima, where N is the number of illuminated slits."],
+["What is a blazed grating?","A grating whose grooves are shaped so most of the light goes into one chosen order, raising efficiency."]];
+$("#qa").innerHTML=QA.map(q=>"<details><summary>"+q[0]+"</summary><p>"+q[1]+"</p></details>").join("");
+/* loop */
+function loop(){requestAnimationFrame(loop);if(!$("#exp").classList.contains("on"))return;size();if(spin)az+=.005;camUpd();R.render(SC,cam)}
+obs();upd();loop();
+</script></body></html>
